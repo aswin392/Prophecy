@@ -6,7 +6,7 @@ on:
       branch:
         description: 'Feature branch to deploy'
         required: true
-        default: 'feature/my-feature'
+        default: 'prophecy_release_1.0'
 
 jobs:
   deploy:
@@ -34,7 +34,7 @@ jobs:
 
     - name: Upload notebooks and scripts to release folder with structure
       run: |
-        find . -type f \( -name "*.ipynb" -o -name "*.py" \) | while read file; do
+        find . -type f \(-name "*.ipynb" -o -name "*.py" -o -name "*.scala" -o -name "*.sql" \) | while read file; do
           # Remove leading './' from path
           rel_path="${file#./}"
           workspace_path="/release/$rel_path"
