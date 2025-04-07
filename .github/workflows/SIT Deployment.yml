@@ -2,7 +2,7 @@ name: SIT Deployment
 on:
   push:
     branches:
-      - main
+      - sit_branch
 jobs:
   deploy:
     runs-on: ubuntu-latest
