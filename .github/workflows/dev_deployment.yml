@@ -1,0 +1,63 @@
+name: Dev Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Feature branch to deploy'
+        required: true
+        default: 'prophecy_release_1.0'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout the specified branch
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.inputs.branch }}
+
+    - name: Install Databricks CLI
+      run: pip install databricks-cli
+
+    - name: Configure Databricks CLI
+      run: |
+        databricks configure --token <<EOF
+        ${{ secrets.DATABRICKS_HOST }}
+        ${{ secrets.DATABRICKS_TOKEN }}
+        EOF
+
+    - name: Create release folder
+      run: |
+        databricks workspace mkdirs /release/
+
+    - name: Upload notebooks and scripts to release folder with structure
+      run: |
+        find . -type f \(-name "*.ipynb" -o -name "*.py" -o -name "*.scala" -o -name "*.sql" \) | while read file; do
+          # Remove leading './' from path
+          rel_path="${file#./}"
+          workspace_path="/release/$rel_path"
+          dir_path=$(dirname "$workspace_path")
+
+          echo "Creating directory in workspace: $dir_path"
+          databricks workspace mkdirs "$dir_path"
+
+          # Determine file type and format
+          ext="${file##*.}"
+          if [ "$ext" = "ipynb" ]; then
+            format="JUPYTER"
+            lang="--language PYTHON"
+          elif [ "$ext" = "py" ]; then
+            format="SOURCE"
+            lang="--language PYTHON"
+          else
+            echo "Skipping unsupported file: $file"
+            continue
+          fi
+
+          echo "Uploading $file to $workspace_path"
+          databricks workspace import "$file" "$workspace_path" --format "$format" $lang --overwrite
+        done
+
+

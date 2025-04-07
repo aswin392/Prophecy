@@ -1,0 +1,32 @@
+name: SIT Deployment
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - sit_branch
+
+jobs:
+  deploy:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Databricks CLI
+        run: pip install databricks-cli
+
+      - name: Upload to Databricks
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_SIT_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_SIT_TOKEN }}
+        run: |
+          databricks workspace mkdirs /release
+          databricks workspace import_dir . /release --overwrite
