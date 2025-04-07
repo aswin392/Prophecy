@@ -1,4 +1,4 @@
-name: Deploy to Databricks
+name: Deploy Notebooks to Databricks
 
 on:
   workflow_dispatch:
@@ -19,24 +19,24 @@ jobs:
         ref: ${{ github.event.inputs.branch }}
 
     - name: Install Databricks CLI
-      run: |
-        pip install databricks-cli
+      run: pip install databricks-cli
 
     - name: Configure Databricks CLI
       run: |
-        databricks configure --token <<EOF
-        ${{ secrets.DATABRICKS_HOST }}
-        ${{ secrets.DATABRICKS_TOKEN }}
-        EOF
+        mkdir -p ~/.databricks
+        echo "[DEFAULT]" > ~/.databricks/config
+        echo "host = ${{ secrets.DATABRICKS_HOST }}" >> ~/.databricks/config
+        echo "token = ${{ secrets.DATABRICKS_TOKEN }}" >> ~/.databricks/config
 
-    - name: Create 'release' folder in Workspace
+    - name: Create release folder
       run: |
         databricks workspace mkdirs /release/${{ github.event.inputs.branch }}
 
-    - name: Upload files to release folder
+    - name: Upload .ipynb notebooks to release folder
       run: |
-        for file in $(find . -name "*.py" -o -name "*.dbc" -o -name "*.ipynb"); do
-          workspace_path="/release/${{ github.event.inputs.branch }}/${file#./}"
+        find . -name "*.ipynb" | while read file; do
+          rel_path="${file#./}"  # remove leading ./
+          workspace_path="/release/${{ github.event.inputs.branch }}/$rel_path"
           echo "Uploading $file to $workspace_path"
-          databricks workspace import "$file" "$workspace_path" --format AUTO --overwrite
+          databricks workspace import "$file" "$workspace_path" --format JUPYTER --overwrite
         done
