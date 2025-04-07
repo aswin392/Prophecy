@@ -32,15 +32,18 @@ jobs:
       run: |
         databricks workspace mkdirs /release/
 
-    - name: Upload notebooks and scripts to release folder
+    - name: Upload notebooks and scripts to release folder with structure
       run: |
-        ROOT_DIR="prophecy_repos"
-        find "$ROOT_DIR" -type f \( -name "*.ipynb" -o -name "*.py" -o -name "*.whl" \) | while read file; do
-          rel_path="${file#"$ROOT_DIR/"}"  # Strip just 'prophecy_repos/'
+        find . -type f \( -name "*.ipynb" -o -name "*.py" \) | while read file; do
+          # Remove leading './' from path
+          rel_path="${file#./}"
           workspace_path="/release/$rel_path"
           dir_path=$(dirname "$workspace_path")
+
+          echo "Creating directory in workspace: $dir_path"
           databricks workspace mkdirs "$dir_path"
 
+          # Determine file type and format
           ext="${file##*.}"
           if [ "$ext" = "ipynb" ]; then
             format="JUPYTER"
@@ -56,4 +59,5 @@ jobs:
           echo "Uploading $file to $workspace_path"
           databricks workspace import "$file" "$workspace_path" --format "$format" $lang --overwrite
         done
+
 
