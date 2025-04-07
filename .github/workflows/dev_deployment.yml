@@ -35,24 +35,24 @@ jobs:
     - name: Upload .ipynb notebooks to release folder
       run: |
         find . -type f \( -name "*.ipynb" -o -name "*.py" -o -name "*.whl" \) | while read file; do
-        rel_path="${file#./}"
-        workspace_path="/release/prophecy_release_1.0/$rel_path"
-        dir_path=$(dirname "$workspace_path")
-        databricks workspace mkdirs "$dir_path"
-      
-        ext="${file##*.}"
-        if [ "$ext" = "ipynb" ]; then
-           format="JUPYTER"
-           lang="--language PYTHON"
-        elif [ "$ext" = "py" ]; then
-           format="SOURCE"
-           lang="--language PYTHON"
-         else
-           echo "Skipping unsupported file: $file"
-           continue
-         fi
-          
-         echo "Uploading $file to $workspace_path"
-         databricks workspace import "$file" "$workspace_path" --format "$format" $lang --overwrite
-         done
-          
+          rel_path="${file#./}"
+          workspace_path="/release/prophecy_release_1.0/$rel_path"
+          dir_path=$(dirname "$workspace_path")
+          databricks workspace mkdirs "$dir_path"
+        
+          ext="${file##*.}"
+          if [ "$ext" = "ipynb" ]; then
+             format="JUPYTER"
+             lang="--language PYTHON"
+          elif [ "$ext" = "py" ]; then
+             format="SOURCE"
+             lang="--language PYTHON"
+           else
+             echo "Skipping unsupported file: $file"
+             continue
+           fi
+            
+           echo "Uploading $file to $workspace_path"
+           databricks workspace import "$file" "$workspace_path" --format "$format" $lang --overwrite
+           done
+            
