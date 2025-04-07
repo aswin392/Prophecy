@@ -1,11 +1,16 @@
 name: SIT Deployment
+
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - sit_branch
+
 jobs:
   deploy:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -18,18 +23,10 @@ jobs:
       - name: Install Databricks CLI
         run: pip install databricks-cli
 
-      - name: Configure Databricks CLI
+      - name: Upload to Databricks
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_SIT_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_SIT_TOKEN }}
-        run: |
-          echo "Configured Databricks CLI using environment variables."
-          
-      - name: Create release folder
-        run: |
-          databricks workspace mkdirs /release/
-    
-      - name: Upload files to /Workspace/release
         run: |
           databricks workspace mkdirs /release
           databricks workspace import_dir . /release --overwrite
