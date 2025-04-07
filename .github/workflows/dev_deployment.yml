@@ -30,7 +30,7 @@ jobs:
 
     - name: Create release folder
       run: |
-        databricks workspace mkdirs /release/${{ github.event.inputs.branch }}
+        databricks workspace mkdirs /release/
 
     - name: Upload .ipynb notebooks to release folder
       run: |
