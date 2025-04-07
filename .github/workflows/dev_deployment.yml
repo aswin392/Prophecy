@@ -23,10 +23,10 @@ jobs:
 
     - name: Configure Databricks CLI
       run: |
-        mkdir -p ~/.databricks
-        echo "[DEFAULT]" > ~/.databricks/config
-        echo "host = ${{ secrets.DATABRICKS_HOST }}" >> ~/.databricks/config
-        echo "token = ${{ secrets.DATABRICKS_TOKEN }}" >> ~/.databricks/config
+        databricks configure --token <<EOF
+        ${{ secrets.DATABRICKS_HOST }}
+        ${{ secrets.DATABRICKS_TOKEN }}
+        EOF
 
     - name: Create release folder
       run: |
