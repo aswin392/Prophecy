@@ -21,10 +21,16 @@ jobs:
       - name: Install Databricks CLI
         run: pip install databricks-cli
 
+      - name: Prepare clean upload folder
+        run: |
+          mkdir temp_release
+          shopt -s extglob
+          cp -r !(temp_release|.git|.github|.gitignore|README.md|*.yml) temp_release/
+
       - name: Upload to Databricks
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_SIT_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_SIT_TOKEN }}
         run: |
           databricks workspace mkdirs /release
-          databricks workspace import_dir . /release --overwrite
+          databricks workspace import_dir temp_release /release --overwrite
