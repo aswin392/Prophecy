@@ -36,7 +36,7 @@ jobs:
       run: |
         find . -type f \( -name "*.ipynb" -o -name "*.py" -o -name "*.whl" \) | while read file; do
           rel_path="${file#./}"
-          workspace_path="/release/prophecy_release_1.0/$rel_path"
+          workspace_path="/release/$rel_path"
           dir_path=$(dirname "$workspace_path")
           databricks workspace mkdirs "$dir_path"
         
