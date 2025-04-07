@@ -22,11 +22,12 @@ jobs:
         run: pip install databricks-cli
 
       - name: Configure Databricks CLI
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_SIT_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_SIT_TOKEN }}
         run: |
-          databricks configure --token <<EOF
-          ${{ secrets.DATABRICKS_SIT_HOST }}
-          ${{ secrets.DATABRICKS_SIT_TOKEN }}
-          EOF
+          echo "Configured Databricks CLI using environment variables."
+          
       - name: Create release folder
         run: |
           databricks workspace mkdirs /release/
