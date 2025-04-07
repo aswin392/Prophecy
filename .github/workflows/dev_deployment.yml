@@ -1,42 +1,42 @@
-name: Deploy Dev Release
+name: Deploy to Databricks
 
 on:
   workflow_dispatch:
     inputs:
       branch:
-        description: 'Branch to deploy'
+        description: 'Feature branch to deploy'
         required: true
-        default: 'feature/a'
+        default: 'feature/my-feature'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout selected branch
-      uses: actions/checkout@v4
+
+    - name: Checkout the specified branch
+      uses: actions/checkout@v3
       with:
         ref: ${{ github.event.inputs.branch }}
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-
     - name: Install Databricks CLI
-      run: pip install databricks-cli
+      run: |
+        pip install databricks-cli
 
     - name: Configure Databricks CLI
       run: |
-        mkdir -p ~/.databricks
-        echo "[DEFAULT]" > ~/.databricks/config
-        echo "host = ${{ secrets.DATABRICKS_HOST }}" >> ~/.databricks/config
-        echo "token = ${{ secrets.DATABRICKS_TOKEN }}" >> ~/.databricks/config
-        
-    - name: Create release folder (if not exists)
-      run: |
-        databricks workspace mkdirs /release
+        databricks configure --token <<EOF
+        ${{ secrets.DATABRICKS_HOST }}
+        ${{ secrets.DATABRICKS_TOKEN }}
+        EOF
 
-    - name: Upload code to release folder
+    - name: Create 'release' folder in Workspace
       run: |
-        databricks workspace import_dir . /release --overwrite
+        databricks workspace mkdirs /release/${{ github.event.inputs.branch }}
+
+    - name: Upload files to release folder
+      run: |
+        for file in $(find . -name "*.py" -o -name "*.dbc" -o -name "*.ipynb"); do
+          workspace_path="/release/${{ github.event.inputs.branch }}/${file#./}"
+          echo "Uploading $file to $workspace_path"
+          databricks workspace import "$file" "$workspace_path" --format AUTO --overwrite
+        done
