@@ -34,8 +34,9 @@ jobs:
 
     - name: Upload notebooks and scripts to release folder
       run: |
-        find ./prophecy_repos -type f \( -name "*.ipynb" -o -name "*.py" -o -name "*.whl" \) | while read file; do
-          rel_path="${file#./prophecy_repos/}"  # Strip the top-level folder
+        ROOT_DIR="prophecy_repos"
+        find "$ROOT_DIR" -type f \( -name "*.ipynb" -o -name "*.py" -o -name "*.whl" \) | while read file; do
+          rel_path="${file#"$ROOT_DIR/"}"  # Strip just 'prophecy_repos/'
           workspace_path="/release/$rel_path"
           dir_path=$(dirname "$workspace_path")
           databricks workspace mkdirs "$dir_path"
@@ -55,3 +56,4 @@ jobs:
           echo "Uploading $file to $workspace_path"
           databricks workspace import "$file" "$workspace_path" --format "$format" $lang --overwrite
         done
+
